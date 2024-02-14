@@ -2,6 +2,7 @@ package com.example.U4W6D2.Controllers;
 
 import com.example.U4W6D2.Entities.Author;
 import com.example.U4W6D2.Entities.BlogPost;
+import com.example.U4W6D2.Payloads.BlogPostPayload;
 import com.example.U4W6D2.Services.BlogPostSRV;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -29,7 +30,7 @@ public class BlogPostsController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public BlogPost saveBlogPost(@RequestBody BlogPost newBlogPost) {
+    public BlogPost saveBlogPost(@RequestBody BlogPostPayload newBlogPost) {
         return this.blogPostSRV.saveBlogPost(newBlogPost);
     }
 

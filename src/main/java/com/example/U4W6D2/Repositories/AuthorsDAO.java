@@ -9,6 +9,6 @@ import java.util.UUID;
 
 @Repository
 public interface AuthorsDAO extends JpaRepository<Author, UUID> {
-
+    boolean existsById(UUID id);
 
 }

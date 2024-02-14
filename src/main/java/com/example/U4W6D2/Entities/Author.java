@@ -1,5 +1,6 @@
 package com.example.U4W6D2.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,6 +27,7 @@ public class Author {
     private LocalDate dateOfBirth;
     private String profilePicture;
 
+    @JsonIgnore
     @ToString.Exclude
     @OneToMany(mappedBy = "author", orphanRemoval = true)
     private Set<BlogPost> blogPosts = new LinkedHashSet<>();
