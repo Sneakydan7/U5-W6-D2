@@ -1,8 +1,10 @@
 package com.example.U4W6D2.Controllers;
 
+import com.example.U4W6D2.Entities.Author;
 import com.example.U4W6D2.Entities.BlogPost;
 import com.example.U4W6D2.Services.BlogPostSRV;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,12 +18,12 @@ public class BlogPostsController {
     private BlogPostSRV blogPostSRV;
 
     @GetMapping
-    public List<BlogPost> getAllBlogPosts() {
-        return this.blogPostSRV.getAllBlogPosts();
+    public Page<BlogPost> getBlogPosts(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "5") int size, @RequestParam(defaultValue = "id") String orderBy) {
+        return this.blogPostSRV.getBlogPosts(page, size, orderBy);
     }
 
     @GetMapping("/{id}")
-    public BlogPost getBlogPostById(@PathVariable int id) {
+    public BlogPost getBlogPostById(@PathVariable Long id) {
         return this.blogPostSRV.getBlogPostById(id);
     }
 
@@ -32,7 +34,7 @@ public class BlogPostsController {
     }
 
     @PutMapping("/{id}")
-    public BlogPost modifyBlogPostById(@PathVariable int id, @RequestBody BlogPost updatedBlogPost) {
+    public BlogPost modifyBlogPostById(@PathVariable Long id, @RequestBody BlogPost updatedBlogPost) {
         return this.blogPostSRV.modifyBlogPostById(updatedBlogPost, id);
 
 
@@ -40,7 +42,7 @@ public class BlogPostsController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteBlogPostById(@PathVariable int id) {
+    public void deleteBlogPostById(@PathVariable Long id) {
         this.blogPostSRV.deleteBlogPostById(id);
     }
 }

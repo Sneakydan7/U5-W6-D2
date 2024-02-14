@@ -1,6 +1,16 @@
 package com.example.U4W6D2.Services;
 
+import com.example.U4W6D2.Entities.Author;
 import com.example.U4W6D2.Entities.BlogPost;
+import com.example.U4W6D2.Exceptions.BlogNotFoundException;
+import com.example.U4W6D2.Exceptions.NotFoundException;
+import com.example.U4W6D2.Payloads.BlogPostPayload;
+import com.example.U4W6D2.Repositories.BlogPostsDAO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -9,53 +19,41 @@ import java.util.List;
 
 @Service
 public class BlogPostSRV {
+    @Autowired
+    public BlogPostsDAO blogPostsDAO;
+    @Autowired
+    public AuthorsSRV authorsSRV;
 
-    public List<BlogPost> blogPosts = new ArrayList<>();
-
-    public List<BlogPost> getAllBlogPosts() {
-        return this.blogPosts;
+    public Page<BlogPost> getBlogPosts(int pageNum, int size, String orderBy) {
+        if (size > 100) size = 100;
+        Pageable pageable = PageRequest.of(pageNum, size, Sort.by(orderBy));
+        return blogPostsDAO.findAll(pageable);
     }
 
-    public BlogPost getBlogPostById(int id) {
-        BlogPost found = null;
-        for (BlogPost blogPost : this.blogPosts) {
-            if (blogPost.getId() == id) {
-                found = blogPost;
-            }
-        }
-        return found;
-    }
+    public BlogPost getBlogPostById(Long postNumber) {
+        return blogPostsDAO.findByPostNumber(postNumber).orElseThrow(() -> new BlogNotFoundException(postNumber));
 
-
-    public BlogPost saveBlogPost(BlogPost blogPost) {
-        this.blogPosts.add(blogPost);
-        return blogPost;
     }
 
 
-    public BlogPost modifyBlogPostById(BlogPost updatedBlogPost, int id) {
-        BlogPost found = null;
-        for (BlogPost blogPost : this.blogPosts) {
-            if (blogPost.getId() == id) {
-                found = blogPost;
-                found.setCategory(updatedBlogPost.getCategory());
-                found.setCover(updatedBlogPost.getCover());
-                found.setTitle(updatedBlogPost.getTitle());
-                found.setContent(updatedBlogPost.getContent());
-                found.setMinutesOfReading(updatedBlogPost.getMinutesOfReading());
-            }
-
-        }
-        return found;
+    public BlogPost saveBlogPost(BlogPostPayload newBlogPost) {
+        Author found = authorsSRV.getAuthorById(newBlogPost)
+        return blogPostsDAO.save(newBlogPost);
     }
 
-    public void deleteBlogPostById(int id) {
-        Iterator<BlogPost> iterator = this.blogPosts.iterator();
-        while (iterator.hasNext()) {
-            BlogPost current = iterator.next();
-            if (current.getId() == id) {
-                iterator.remove();
-            }
-        }
+
+    public BlogPost modifyBlogPostById(BlogPost updatedBlogPost, Long id) {
+        BlogPost found = this.getBlogPostById(id);
+        found.setTitle(updatedBlogPost.getTitle());
+        found.setAuthor(updatedBlogPost.getAuthor());
+        found.setContent(updatedBlogPost.getContent());
+        found.setCategory(updatedBlogPost.getCategory());
+        found.setMinutesOfReading(updatedBlogPost.getMinutesOfReading());
+
+    }
+
+    public void deleteBlogPostById(Long id) {
+        BlogPost found = this.getBlogPostById(id);
+        blogPostsDAO.delete(found);
     }
 }
