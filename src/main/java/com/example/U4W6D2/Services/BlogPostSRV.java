@@ -1,5 +1,7 @@
 package com.example.U4W6D2.Services;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.example.U4W6D2.Entities.Author;
 import com.example.U4W6D2.Entities.BlogPost;
 import com.example.U4W6D2.Exceptions.BadRequestException;
@@ -14,10 +16,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class BlogPostSRV {
@@ -27,6 +32,9 @@ public class BlogPostSRV {
     public AuthorsSRV authorsSRV;
     @Autowired
     public AuthorsDAO authorsDAO;
+
+    @Autowired
+    public Cloudinary cloudinaryUploader;
 
     public Page<BlogPost> getBlogPosts(int pageNum, int size, String orderBy) {
         if (size > 100) size = 100;
@@ -43,7 +51,7 @@ public class BlogPostSRV {
     public BlogPost saveBlogPost(BlogPostPayload newBlogPost) {
         if (!authorsDAO.existsById(newBlogPost.getAuthorId())) throw new BadRequestException("Author not found");
         Author author = authorsSRV.getAuthorById(newBlogPost.getAuthorId());
-        return blogPostsDAO.save(new BlogPost("Fiction", newBlogPost.getTitle(), "https://picsum.photos/200/300", newBlogPost.getContent(), 5, author));
+        return blogPostsDAO.save(new BlogPost(newBlogPost.getCategory(), newBlogPost.getTitle(), "https://picsum.photos/200/300", newBlogPost.getContent(), 5, author));
     }
 
     public BlogPost modifyBlogPostById(BlogPost updatedBlogPost, Long id) {
@@ -59,5 +67,17 @@ public class BlogPostSRV {
     public void deleteBlogPostById(Long id) {
         BlogPost found = this.getBlogPostById(id);
         blogPostsDAO.delete(found);
+    }
+
+
+    public String uploadImageForPost(MultipartFile image, Long id) throws IOException {
+        String url = (String) cloudinaryUploader.uploader().upload(image.getBytes(),
+                ObjectUtils.emptyMap()).get("url");
+
+        BlogPost found = this.getBlogPostById(id);
+        found.setCover(String.valueOf(url));
+        blogPostsDAO.save(found);
+        return url;
+
     }
 }

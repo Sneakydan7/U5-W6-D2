@@ -1,5 +1,7 @@
 package com.example.U4W6D2.Services;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.example.U4W6D2.Entities.Author;
 import com.example.U4W6D2.Entities.BlogPost;
 import com.example.U4W6D2.Exceptions.NotFoundException;
@@ -10,7 +12,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +24,8 @@ import java.util.UUID;
 public class AuthorsSRV {
     @Autowired
     private AuthorsDAO authorsDAO;
+    @Autowired
+    private Cloudinary cloudinaryUploader;
 
     public Page<Author> getAuthors(int pageNum, int size, String orderBy) {
         if (size > 100) size = 100;
@@ -51,4 +57,15 @@ public class AuthorsSRV {
         authorsDAO.delete(found);
     }
 
+
+    public String uploadImageForAuthor(MultipartFile image, UUID id) throws IOException {
+        String url = (String) cloudinaryUploader.uploader().upload(image.getBytes(),
+                ObjectUtils.emptyMap()).get("url");
+
+        Author found = this.getAuthorById(id);
+        found.setProfilePicture(String.valueOf(url));
+        authorsDAO.save(found);
+        return url;
+
+    }
 }
